@@ -14,7 +14,7 @@ class state:
     self.points = [(0.0, 0.0), (1.0, 0.0)]
 
 def goal_state():
-  n = 3
+  n = 6
   goal = state()
   theta = 2 * np.pi / n
   # for i in range(n):
@@ -22,25 +22,31 @@ def goal_state():
   #   x2, y2 = np.cos((i + 1) * theta), np.sin((i + 1) * theta)
   #   line = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
   #   goal.lines.add(line)
-  x1, y1 = (0, 1)
+  x1, y1 = (1, 0)
   x2, y2 = np.cos(theta), np.sin(theta)
-  line = (y2 - y1, x1 - x2, x2 * y1 - x1 * y2)
+  line = line_eq(x1, y1, x2, y2)
   goal.lines.append(line)
   return goal
 
 def bfs(start, goal):
   queue = deque([start])
-  visited = set([start])
+  visited = [start]
   while queue:
     state = queue.popleft()
-    viz(state)
+    print(len(state.circles) + len(state.lines))
     if done(state, goal):
       return state
     for child in get_children(state, visited):
       queue.append(child)
 
 def done(state, goal):
-  return set(goal.circles) <= set(state.circles) and set(goal.lines) <= set(state.lines)
+  for line in goal.lines:
+    if not contains(state.lines, line):
+      return False
+  for circle in goal.circles:
+    if not contains(state.circles, circle):
+      return False
+  return True
 
 def get_children(state, visited):
   children = []
@@ -57,26 +63,34 @@ def get_children(state, visited):
           if not contains(state.lines, line1):
             child = deepcopy(state)
             child.lines.append(line1)
-            if not child in visited:
+            if not state_contains(visited, child):
               for line2 in state.lines:
                 child.points = union(child.points, l_l_sol(line1, line2))
               for circle1 in state.circles:
                 child.points = union(child.points, l_c_sol(line1, circle1))
               children.append(child)
-              visited.add(child)
+              visited.append(child)
 
         circle1 = circle_eq(x1, y1, x2, y2)
         if not contains(state.circles, circle1):
           child = deepcopy(state)
           child.circles.append(circle1)
-          if not child in visited:
+          if not state_contains(visited, child):
             for line1 in state.lines:
               child.points = union(child.points, l_c_sol(line1, circle1))
             for circle2 in state.circles:
               child.points = union(child.points, c_c_sol(circle1, circle2))
             children.append(child)
-            visited.add(child)
+            visited.append(child)
   return children
+
+def state_contains(s, x):
+  contained = False
+  for y in s:
+    if equal(x.lines, y.lines) and equal(x.circles, y.circles):
+      contained = True
+      break
+  return contained
 
 def contains(s, x):
   contained = False
@@ -111,6 +125,8 @@ def circle_eq(x1, y1, x2, y2):
 def equal(a, b):
   a = np.asarray(a)
   b = np.asarray(b)
+  if a.shape != b.shape:
+    return False
   return np.all(np.abs(a - b) <= EPS)
 
 def l_l_sol(line1, line2):
