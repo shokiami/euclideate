@@ -30,6 +30,7 @@ PointSet l_c_sol(Line& line, Circle& circle) {
 }
 
 int main() {
-  cout << qsqrt(x) << endl;  // 1 1 2
+  QuadNum x = QuadNum(26, -15, 2);
+  cout << qsqrt(x) << endl;
   return 0;
 }

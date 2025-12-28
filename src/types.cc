@@ -89,34 +89,23 @@ int64 isqrt(const int64& n) {
 }
 
 QuadNum qsqrt(const QuadNum& x) {
-  if (sign(x) < 0)
-    throw std::invalid_argument("sqrt of negative number");
-  if (sign(x) == 0)
-    return QuadNum(0);
+  if (sign(x) < 0) throw std::invalid_argument("sqrt of negative number");
+  if (sign(x) == 0) return QuadNum(0);
   int64 a = x.a, b = x.b, d = x.d;
-  
-  int64 alpha = a * d;
-  int64 beta = b * d;
-  if ((ROOT * beta * beta) % 4 != 0) return QuadNum(-1);
+  int64 alpha = a * d * d;
+  int64 beta = b * d * d;
   int64 disc2 = alpha * alpha - ROOT * beta * beta;
   if (disc2 < 0) return QuadNum(-1);
   int64 disc = isqrt(disc2);
   if (disc == -1) return QuadNum(-1);
-  for (int sgn : {1, -1}) {
-    int64 num = alpha + sgn * disc;
-    if (num % 2 != 0) continue;
-    int64 r2 = num / 2;
-    if (r2 < 0) continue;
-    int64 r = isqrt(r2);
-    if (r == -1) continue;
-    if (beta % (2 * r) != 0) continue;
-    int64 s = beta / (2 * r);
-    QuadNum res = QuadNum(r, s, d);
-    if (sign(res) == 1) {
-      return res;
-    }
-  }
-  return QuadNum(-1);
+  int64 num = alpha + (alpha >= 0 ? disc : -disc);
+  if (num % 2 != 0) return QuadNum(-1);
+  int64 r2 = num / 2;
+  int64 r = isqrt(r2);
+  if (r == -1) return QuadNum(-1);
+  if (beta % (2 * r) != 0) return QuadNum(-1);
+  int64 s = beta / (2 * r);
+  return QuadNum(r, s, d);
 }
 
 int sign(const QuadNum& x) {
