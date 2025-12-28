@@ -29,6 +29,26 @@ PointSet l_c_sol(Line& line, Circle& circle) {
   return {p1, p2};
 }
 
+PointSet c_c_sol(Circle& circle1, Circle& circle2) {
+  if (circle1 == circle2) throw std::invalid_argument("Same circle");
+  QuadNum x0_1 = circle1.x0, y0_1 = circle1.y0, r2_1 = circle1.r2;
+  QuadNum x0_2 = circle2.x0, y0_2 = circle2.y0, r2_2 = circle2.r2;
+  QuadNum dx = x0_2 - x0_1;
+  QuadNum dy = y0_2 - y0_1;
+  QuadNum d2 = dx * dx + dy * dy;
+  QuadNum t = (r2_1 - r2_2 + d2) / (2 * d2);
+  QuadNum h2 = r2_1 - t * t * d2;
+  if (sign(h2) == -1) return {};
+  QuadNum x_mid = x0_1 + t * dx;
+  QuadNum y_mid = y0_1 + t * dy;
+  if (sign(h2) == 0) return {Point(x_mid, y_mid)};
+  QuadNum h_d = qsqrt(h2 / d2);
+  if (sign(h_d) == -1) return {};
+  Point p1 = Point(x_mid + dy * h_d, y_mid - dx * h_d);
+  Point p2 = Point(x_mid - dy * h_d, y_mid + dx * h_d);
+  return {p1, p2};
+}
+
 int main() {
   QuadNum x = QuadNum(-2, 3, 5);
   cout << qsqrt(x * x) << endl;
