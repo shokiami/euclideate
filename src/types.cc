@@ -22,14 +22,6 @@ void QuadNum::normalize() {
   }
 }
 
-int QuadNum::sign() const {
-  int64 lhs = a * a;
-  int64 rhs = ROOT * b * b;
-  if (lhs > rhs) return (a > 0) ? 1 : -1;
-  if (rhs > lhs) return (b > 0) ? 1 : -1;
-  return 0;
-}
-
 QuadNum& QuadNum::operator+=(const QuadNum& other) {
   *this = *this + other;
   return *this;
@@ -76,17 +68,67 @@ QuadNum operator*(const QuadNum& x, const QuadNum& y) {
 }
 
 QuadNum operator/(const QuadNum& x, const QuadNum& y) {
-  if (y.sign() == 0) {
-    throw std::invalid_argument("Division by zero");
-  }
+  if (sign(y) == 0) throw std::invalid_argument("Division by zero");
   int64 a = y.d * (x.a * y.a - ROOT * x.b * y.b);
   int64 b = y.d * (x.b * y.a - x.a * y.b);
   int64 d = x.d * (y.a * y.a - ROOT * y.b * y.b);
   return QuadNum(a, b, d);
 }
 
+int64 isqrt(const int64& n) {
+  if (n < 0) throw std::invalid_argument("sqrt of negative number");
+  if (n == 0) return 0;
+  int64 x = n;
+  while (true) {
+    int64 y = (x + n / x) / 2;
+    if (y >= x) {
+      return x * x == n ? x : -1;
+    }
+    x = y;
+  }
+}
+
+QuadNum qsqrt(const QuadNum& x) {
+  if (sign(x) < 0)
+    throw std::invalid_argument("sqrt of negative number");
+  if (sign(x) == 0)
+    return QuadNum(0);
+  int64 a = x.a, b = x.b, d = x.d;
+  
+  int64 alpha = a * d;
+  int64 beta = b * d;
+  if ((ROOT * beta * beta) % 4 != 0) return QuadNum(-1);
+  int64 disc2 = alpha * alpha - ROOT * beta * beta;
+  if (disc2 < 0) return QuadNum(-1);
+  int64 disc = isqrt(disc2);
+  if (disc == -1) return QuadNum(-1);
+  for (int sgn : {1, -1}) {
+    int64 num = alpha + sgn * disc;
+    if (num % 2 != 0) continue;
+    int64 r2 = num / 2;
+    if (r2 < 0) continue;
+    int64 r = isqrt(r2);
+    if (r == -1) continue;
+    if (beta % (2 * r) != 0) continue;
+    int64 s = beta / (2 * r);
+    QuadNum res = QuadNum(r, s, d);
+    if (sign(res) == 1) {
+      return res;
+    }
+  }
+  return QuadNum(-1);
+}
+
+int sign(const QuadNum& x) {
+  int64 lhs = x.a * x.a;
+  int64 rhs = ROOT * x.b * x.b;
+  if (lhs > rhs) return (x.a > 0) ? 1 : -1;
+  if (rhs > lhs) return (x.b > 0) ? 1 : -1;
+  return 0;
+}
+
 std::ostream& operator<<(std::ostream& os, const QuadNum& x) {
-  os << x.a << ", " << x.b << ", " << x.d;
+  os << "(" << x.a << " + " << x.b << "√" << ROOT << ") / " << x.d;
   return os;
 }
 
@@ -96,14 +138,12 @@ Line::Line(const Point& p, const Point& q) {
   a = q.y - p.y;
   b = p.x - q.x;
   c = q.x * p.y - p.x * q.y;
-  if (a.sign() == 0 && b.sign() == 0) {
-    throw std::invalid_argument("Degenerate line");
-  }
+  if (sign(a) == 0 && sign(b) == 0) throw std::invalid_argument("Degenerate line");
   normalize();
 }
 
 void Line::normalize() {
-  if (a.sign() != 0) {
+  if (sign(a) != 0) {
     c /= a;
     b /= a;
     a = QuadNum(1);
@@ -111,20 +151,18 @@ void Line::normalize() {
     c /= b;
     b = QuadNum(1);
   }
-  if (a.sign() == -1 || (a.sign() == 0 && b.sign() == -1)) {
+  if (sign(a) == -1 || (sign(a) == 0 && sign(b) == -1)) {
     a = -a;
     b = -b;
     c = -c;
   }
 }
 
-Circle::Circle(const Point& p, const Point& q) : x(p.x), y(p.y) {
+Circle::Circle(const Point& p, const Point& q) : x0(p.x), y0(p.y) {
   QuadNum dx = q.x - p.x;
   QuadNum dy = q.y - p.y;
   r2 = dx * dx + dy * dy;
-  if (r2.sign() == 0) {
-    throw std::invalid_argument("Degenerate circle");
-  }
+  if (sign(r2) == 0) throw std::invalid_argument("Degenerate circle");
 }
 
 std::size_t State::size() const {
@@ -144,7 +182,7 @@ bool operator==(const Line& l1, const Line& l2) {
 };
 
 bool operator==(const Circle& c1, const Circle& c2) {
-  return c1.x == c2.x && c1.y == c2.y && c1.r2 == c2.r2;
+  return c1.x0 == c2.x0 && c1.y0 == c2.y0 && c1.r2 == c2.r2;
 };
 
 bool operator==(const State& s1, const State& s2) {
@@ -172,8 +210,8 @@ std::size_t LineHash::operator()(const Line& l) const noexcept {
 }
 
 std::size_t CircleHash::operator()(const Circle& c) const noexcept {
-  std::size_t h = QuadNumHash{}(c.x);
-  hash_combine(h, QuadNumHash{}(c.y));
+  std::size_t h = QuadNumHash{}(c.x0);
+  hash_combine(h, QuadNumHash{}(c.y0));
   hash_combine(h, QuadNumHash{}(c.r2));
   return h;
 }

@@ -16,7 +16,6 @@ using std::vector;
 using std::string;
 using std::cout;
 using std::endl;
-using std::unordered_set;
 using std::abs;
 using std::gcd;
 using int64 = long long;
@@ -25,12 +24,11 @@ constexpr int ROOT = 3;
 constexpr size_t DEGREE = 2;
 
 struct QuadNum {
-  int64 a, b, d;  // {a + b sqrt(ROOT)} / d
+  int64 a, b, d;  // (a + b√ROOT) / d
 
   QuadNum();
   QuadNum(int64 a);
   QuadNum(int64 a, int64 b, int64 d);
-  int sign() const;
   QuadNum& operator+=(const QuadNum& other);
   QuadNum& operator-=(const QuadNum& other);
   QuadNum& operator*=(const QuadNum& other);
@@ -45,6 +43,10 @@ QuadNum operator+(const QuadNum& x, const QuadNum& y);
 QuadNum operator-(const QuadNum& x, const QuadNum& y);
 QuadNum operator*(const QuadNum& x, const QuadNum& y);
 QuadNum operator/(const QuadNum& x, const QuadNum& y);
+
+int64 isqrt(const int64& n);  // return -1 if sol != integer
+QuadNum qsqrt(const QuadNum& x);  // return -1 if sol != QuadNum
+int sign(const QuadNum& x);
 std::ostream& operator<<(std::ostream& os, const QuadNum& q);
 
 struct Point {
@@ -54,7 +56,7 @@ struct Point {
 };
 
 struct Line {
-  // ax + by + c = 0
+  // ax + by = c
   QuadNum a, b, c;
 
   Line(const Point& p, const Point& q);
@@ -64,7 +66,7 @@ struct Line {
 };
 
 struct Circle {
-  QuadNum x, y, r2;  // (x, y) = center, r2 = squared radius
+  QuadNum x0, y0, r2;  // (x0, y0) = center, r2 = squared radius
 
   Circle(const Point& p, const Point& q);
 };
@@ -73,6 +75,10 @@ bool operator==(const QuadNum& x, const QuadNum& y);
 bool operator==(const Point& p, const Point& q);
 bool operator==(const Line& l1, const Line& l2);
 bool operator==(const Circle& c1, const Circle& c2);
+
+inline void hash_combine(std::size_t& seed, std::size_t h) {
+  seed ^= h + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
+};
 
 struct QuadNumHash {
   std::size_t operator()(const QuadNum& x) const noexcept;
@@ -90,9 +96,9 @@ struct CircleHash {
   std::size_t operator()(const Circle& c) const noexcept;
 };
 
-inline void hash_combine(std::size_t& seed, std::size_t h) {
-  seed ^= h + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
-};
+using PointSet = std::unordered_set<Point, PointHash>;
+using LineSet = std::unordered_set<Line, LineHash>;
+using CircleSet = std::unordered_set<Circle, CircleHash>;
 
 template <class T, class Hash>
 inline std::size_t hash_unordered_set(const std::unordered_set<T, Hash>& set) {
@@ -105,9 +111,9 @@ inline std::size_t hash_unordered_set(const std::unordered_set<T, Hash>& set) {
 };
 
 struct State {
-  unordered_set<Point, PointHash> points;
-  unordered_set<Line, LineHash> lines;
-  unordered_set<Circle, CircleHash> circles;
+  PointSet points;
+  LineSet lines;
+  CircleSet circles;
 
   size_t size() const;
 };
