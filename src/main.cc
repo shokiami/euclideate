@@ -1,6 +1,6 @@
 #include "types.h"
 
-PointSet l_l_sol(Line& line1, Line& line2) {
+PointSet ll_sol(Line& line1, Line& line2) {
   if (line1 == line2) throw std::invalid_argument("Same line");
   QuadNum a1 = line1.a, b1 = line1.b, c1 = line1.c;
   QuadNum a2 = line2.a, b2 = line2.b, c2 = line2.c;
@@ -11,7 +11,7 @@ PointSet l_l_sol(Line& line1, Line& line2) {
   return {Point(x, y)};
 }
 
-PointSet l_c_sol(Line& line, Circle& circle) {
+PointSet lc_sol(Line& line, Circle& circle) {
   QuadNum a = line.a, b = line.b, c = line.c;
   QuadNum x0 = circle.x0, y0 = circle.y0, r2 = circle.r2;
   QuadNum dot = a * x0 + b * y0 - c;
@@ -29,7 +29,7 @@ PointSet l_c_sol(Line& line, Circle& circle) {
   return {p1, p2};
 }
 
-PointSet c_c_sol(Circle& circle1, Circle& circle2) {
+PointSet cc_sol(Circle& circle1, Circle& circle2) {
   if (circle1 == circle2) throw std::invalid_argument("Same circle");
   QuadNum x0_1 = circle1.x0, y0_1 = circle1.y0, r2_1 = circle1.r2;
   QuadNum x0_2 = circle2.x0, y0_2 = circle2.y0, r2_2 = circle2.r2;
@@ -50,7 +50,11 @@ PointSet c_c_sol(Circle& circle1, Circle& circle2) {
 }
 
 int main() {
-  QuadNum x = QuadNum(-2, 3, 5);
-  cout << qsqrt(x * x) << endl;
+  Line l1 = Line(Point(QuadNum(0), QuadNum(0)), Point(QuadNum(5), QuadNum(1)));
+  Circle c1 = Circle(Point(QuadNum(2), QuadNum(1)), Point(QuadNum(-2), QuadNum(2)));
+  PointSet points = lc_sol(l1, c1);
+  for (const Point& p : points) {
+    cout << p << endl;
+  }
   return 0;
 }

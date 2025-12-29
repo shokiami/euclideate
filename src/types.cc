@@ -118,16 +118,21 @@ int sign(const QuadNum& x) {
 }
 
 std::ostream& operator<<(std::ostream& os, const QuadNum& x) {
-  os << "(" << x.a << " + " << x.b << "√" << ROOT << ") / " << x.d;
+  os << "{" << x.a << " + " << x.b << "√" << ROOT << "} / " << x.d;
   return os;
 }
 
 Point::Point(const QuadNum& x, const QuadNum& y) : x(x), y(y) {}
 
+std::ostream& operator<<(std::ostream& os, const Point& p) {
+  os << "(" << p.x << ", " << p.y << ")";
+  return os;
+}
+
 Line::Line(const Point& p, const Point& q) {
   a = q.y - p.y;
   b = p.x - q.x;
-  c = q.x * p.y - p.x * q.y;
+  c = p.x * q.y - q.x * p.y;
   if (sign(a) == 0 && sign(b) == 0) throw std::invalid_argument("Degenerate line");
   normalize();
 }

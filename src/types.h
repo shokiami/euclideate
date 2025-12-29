@@ -24,7 +24,7 @@ constexpr int ROOT = 3;
 constexpr size_t DEGREE = 2;
 
 struct QuadNum {
-  int64 a, b, d;  // (a + b√ROOT) / d
+  int64 a, b, d;  // {a + b√ROOT} / d
 
   QuadNum();
   QuadNum(int64 a);
@@ -47,13 +47,15 @@ QuadNum operator/(const QuadNum& x, const QuadNum& y);
 int64 isqrt(const int64& n);  // return -1 if sol != integer
 QuadNum qsqrt(const QuadNum& x);  // return -1 if sol != QuadNum
 int sign(const QuadNum& x);
-std::ostream& operator<<(std::ostream& os, const QuadNum& q);
+std::ostream& operator<<(std::ostream& os, const QuadNum& x);
 
 struct Point {
   QuadNum x, y;
 
   Point(const QuadNum& x, const QuadNum& y);
 };
+
+std::ostream& operator<<(std::ostream& os, const Point& p);
 
 struct Line {
   // ax + by = c
