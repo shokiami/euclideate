@@ -6,17 +6,17 @@ def parse(filename):
   with open(filename, 'r') as file:
     for line in file:
       line = line.strip()
-      if line == "Circles:":
+      if line == "Points:":
         i = 0
       elif line == "Lines:":
         i = 1
-      elif line == "Points:":
+      elif line == "Circles:":
         i = 2
       elif line:
         data[i].append(list(map(float, line.split())))
   return data
 
-circles, lines, points = parse('temp.txt')
+points, lines, circles = parse('temp.txt')
 
 plt.figure()
 plt.axis('equal')

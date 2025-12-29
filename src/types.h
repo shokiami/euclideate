@@ -34,6 +34,7 @@ struct QuadNum {
   QuadNum& operator*=(const QuadNum& other);
   QuadNum& operator/=(const QuadNum& other);
   QuadNum operator-() const;
+  double to_double() const;
 
   private:
   void normalize();
@@ -44,7 +45,7 @@ QuadNum operator-(const QuadNum& x, const QuadNum& y);
 QuadNum operator*(const QuadNum& x, const QuadNum& y);
 QuadNum operator/(const QuadNum& x, const QuadNum& y);
 
-int64 isqrt(const int64& n);  // return -1 if sol != integer
+int64 isqrt(int64 n);  // return -1 if sol != integer
 QuadNum qsqrt(const QuadNum& x);  // return -1 if sol != QuadNum
 int sign(const QuadNum& x);
 std::ostream& operator<<(std::ostream& os, const QuadNum& x);
@@ -67,11 +68,15 @@ struct Line {
   void normalize();
 };
 
+std::ostream& operator<<(std::ostream& os, const Line& l);
+
 struct Circle {
   QuadNum x0, y0, r2;  // (x0, y0) = center, r2 = squared radius
 
   Circle(const Point& p, const Point& q);
 };
+
+std::ostream& operator<<(std::ostream& os, const Circle& c);
 
 bool operator==(const QuadNum& x, const QuadNum& y);
 bool operator==(const Point& p, const Point& q);
@@ -117,6 +122,7 @@ struct State {
   LineSet lines;
   CircleSet circles;
 
+  State(const PointSet& points, const LineSet& lines, const CircleSet& circles);
   size_t size() const;
 };
 
@@ -125,5 +131,20 @@ bool operator==(const State& s1, const State& s2);
 struct StateHash {
   std::size_t operator()(const State& s) const noexcept;
 };
+
+using StateSet = std::unordered_set<State, StateHash>;
+
+struct Item {
+  State state;
+  size_t key;
+};
+
+struct Compare {
+  bool operator()(const Item& a, const Item& b) const {
+    return a.key > b.key;
+  }
+};
+
+using StateQueue = std::priority_queue<Item, vector<Item>, Compare>;
 
 #endif

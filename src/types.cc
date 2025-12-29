@@ -43,28 +43,32 @@ QuadNum& QuadNum::operator/=(const QuadNum& other) {
 }
 
 QuadNum QuadNum::operator-() const {
-  return QuadNum(-a, -b, d);
+  return {-a, -b, d};
+}
+
+double QuadNum::to_double() const {
+  return (static_cast<double>(a) + static_cast<double>(b) * std::sqrt(static_cast<double>(ROOT))) / static_cast<double>(d);
 }
 
 QuadNum operator+(const QuadNum& x, const QuadNum& y) {
   int64 a = x.a * y.d + y.a * x.d;
   int64 b = x.b * y.d + y.b * x.d;
   int64 d = x.d * y.d;
-  return QuadNum(a, b, d);
+  return {a, b, d};
 }
 
 QuadNum operator-(const QuadNum& x, const QuadNum& y) {
   int64 a = x.a * y.d - y.a * x.d;
   int64 b = x.b * y.d - y.b * x.d;
   int64 d = x.d * y.d;
-  return QuadNum(a, b, d);
+  return {a, b, d};
 }
 
 QuadNum operator*(const QuadNum& x, const QuadNum& y) {
   int64 a = x.a * y.a + ROOT * x.b * y.b;
   int64 b = x.a * y.b + x.b * y.a;
   int64 d = x.d * y.d;
-  return QuadNum(a, b, d);
+  return {a, b, d};
 }
 
 QuadNum operator/(const QuadNum& x, const QuadNum& y) {
@@ -72,10 +76,10 @@ QuadNum operator/(const QuadNum& x, const QuadNum& y) {
   int64 a = y.d * (x.a * y.a - ROOT * x.b * y.b);
   int64 b = y.d * (x.b * y.a - x.a * y.b);
   int64 d = x.d * (y.a * y.a - ROOT * y.b * y.b);
-  return QuadNum(a, b, d);
+  return {a, b, d};
 }
 
-int64 isqrt(const int64& n) {
+int64 isqrt(int64 n) {
   if (n < 0) return -1;
   if (n == 0) return 0;
   int64 x = n;
@@ -89,13 +93,13 @@ int64 isqrt(const int64& n) {
 }
 
 QuadNum qsqrt(const QuadNum& x) {
-  if (sign(x) < 0) return QuadNum(-1);
-  if (sign(x) == 0) return QuadNum(0);
+  if (sign(x) < 0) return -1;
+  if (sign(x) == 0) return 0;
   int64 a = x.a, b = x.b, d = x.d;
   int64 alpha = a * d;
   int64 beta = b * d;
   int64 disc = isqrt(alpha * alpha - ROOT * beta * beta);
-  if (disc == -1) return QuadNum(-1);
+  if (disc == -1) return -1;
   for (int sgn : {1, -1}) {
     int64 num = alpha + sgn * disc;
     if (num % 2 != 0) continue;
@@ -103,10 +107,10 @@ QuadNum qsqrt(const QuadNum& x) {
     if (r == -1) continue;
     if (beta % (2 * r) != 0) continue;
     int64 s = beta / (2 * r);
-    QuadNum res = QuadNum(r, s, d);
+    QuadNum res = {r, s, d};
     return sign(res) == 1 ? res : -res;
   }
-  return QuadNum(-1);
+  return -1;
 }
 
 int sign(const QuadNum& x) {
@@ -125,7 +129,7 @@ std::ostream& operator<<(std::ostream& os, const QuadNum& x) {
 Point::Point(const QuadNum& x, const QuadNum& y) : x(x), y(y) {}
 
 std::ostream& operator<<(std::ostream& os, const Point& p) {
-  os << "(" << p.x << ", " << p.y << ")";
+  os << p.x.to_double() << " " << p.y.to_double();
   return os;
 }
 
@@ -141,10 +145,10 @@ void Line::normalize() {
   if (sign(a) != 0) {
     c /= a;
     b /= a;
-    a = QuadNum(1);
+    a = 1;
   } else {
     c /= b;
-    b = QuadNum(1);
+    b = 1;
   }
   if (sign(a) == -1 || (sign(a) == 0 && sign(b) == -1)) {
     a = -a;
@@ -153,12 +157,24 @@ void Line::normalize() {
   }
 }
 
+std::ostream& operator<<(std::ostream& os, const Line& l) {
+  os << l.a.to_double() << " " << l.b.to_double() << " " << l.c.to_double();
+  return os;
+}
+
 Circle::Circle(const Point& p, const Point& q) : x0(p.x), y0(p.y) {
   QuadNum dx = q.x - p.x;
   QuadNum dy = q.y - p.y;
   r2 = dx * dx + dy * dy;
   if (sign(r2) == 0) throw std::invalid_argument("Degenerate circle");
 }
+
+std::ostream& operator<<(std::ostream& os, const Circle& c) {
+  os << c.x0.to_double() << " " << c.y0.to_double() << " " << c.r2.to_double();
+  return os;
+}
+
+State::State(const PointSet& points, const LineSet& lines, const CircleSet& circles) : points(points), lines(lines), circles(circles) {}
 
 std::size_t State::size() const {
   return lines.size() + circles.size();
@@ -181,7 +197,7 @@ bool operator==(const Circle& c1, const Circle& c2) {
 };
 
 bool operator==(const State& s1, const State& s2) {
-  return s1.points  == s2.points && s1.lines   == s2.lines && s1.circles == s2.circles;
+  return s1.points == s2.points && s1.lines == s2.lines && s1.circles == s2.circles;
 };
 
 std::size_t QuadNumHash::operator()(const QuadNum& x) const noexcept {

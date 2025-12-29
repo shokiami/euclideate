@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -O2 -MMD -MP
+CXXFLAGS := -std=c++20 -Wall -Wextra -Wpedantic -O2 -MMD -MP
 TARGET := main
 
 SRC_DIR := src
