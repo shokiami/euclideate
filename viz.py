@@ -34,8 +34,8 @@ for a, b, c in lines:
   y2 = -b * c / d**2 + 1000 * a / d
   plt.plot([x1, x2], [y1, y2], color='#000000', lw=1)
 
-for x, y, r in circles:
-  circle = plt.Circle((x, y), r, color='#000000', fill=False, lw=1)
+for x, y, r2 in circles:
+  circle = plt.Circle((x, y), np.sqrt(r2), color='#000000', fill=False, lw=1)
   plt.gca().add_artist(circle)
 
 for x, y in points:

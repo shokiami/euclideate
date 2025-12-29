@@ -96,6 +96,15 @@ QuadNum qsqrt(const QuadNum& x) {
   if (sign(x) < 0) return -1;
   if (sign(x) == 0) return 0;
   int64 a = x.a, b = x.b, d = x.d;
+  if (b == 0) {
+    int64 num2 = a * d;
+    int64 r = isqrt(num2);
+    if (r != -1) return {r, 0, d};
+    if (num2 % ROOT != 0) return -1;
+    int64 s = isqrt(num2 / ROOT);
+    if (s == -1) return -1;
+    return {0, s, d};
+  }
   int64 alpha = a * d;
   int64 beta = b * d;
   int64 disc = isqrt(alpha * alpha - ROOT * beta * beta);

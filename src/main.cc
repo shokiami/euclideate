@@ -33,6 +33,7 @@ vector<Point> cc_sol(const Circle& circle1, const Circle& circle2) {
   if (circle1 == circle2) throw std::invalid_argument("Same circle");
   QuadNum x0_1 = circle1.x0, y0_1 = circle1.y0, r2_1 = circle1.r2;
   QuadNum x0_2 = circle2.x0, y0_2 = circle2.y0, r2_2 = circle2.r2;
+  if (x0_1 == x0_2 && y0_1 == y0_2 && r2_1 != r2_2) return {};
   QuadNum dx = x0_2 - x0_1;
   QuadNum dy = y0_2 - y0_1;
   QuadNum d2 = dx * dx + dy * dy;
@@ -107,10 +108,14 @@ State bfs(State& start, State& goal) {
   StateSet seen = {start};
   StateQueue pq;
   pq.push({start, start.size()});
+  size_t i = 0;
   while (!pq.empty()) {
     State state = pq.top().state;
     pq.pop();
-    cout << state.size() << endl;
+    cout << ++i << ": " << state.size() << endl;
+    if (i == 15) {
+      return state;
+    }
     if (done(state, goal)) {
       return state;
     }
@@ -141,6 +146,11 @@ void save(State& state) {
 }
 
 int main() {
+  // Line l = {{{0, -1, 2}, {-1, 0, 2}}, {0, -1}};
+  // Circle c = {{0, 0}, {0, 1}};
+  // for (const Point& p : lc_sol(l, c)) {
+  //   cout << p << endl;
+  // }
   State start = {{
     {0, 0}, {0, 1}  // points
   }, {}, {
