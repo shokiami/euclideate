@@ -20,18 +20,18 @@ points, lines, circles = parse('temp.txt')
 
 plt.figure()
 plt.axis('equal')
-plt.xlim(-2.5, 2.5)
-plt.ylim(-3.0, 3.0)
+plt.axis([-4, 4, -4, 4])
 plt.axis('off')
 plt.box(False)
 plt.tight_layout()
 
 for a, b, c in lines:
   d = np.sqrt(a**2 + b**2)
-  x1 = -a * c / d**2 + 1000 * b / d
-  y1 = -b * c / d**2 - 1000 * a / d
-  x2 = -a * c / d**2 - 1000 * b / d
-  y2 = -b * c / d**2 + 1000 * a / d
+  D = 1000
+  x1 = a * c / d**2 + D * b / d
+  y1 = b * c / d**2 - D * a / d
+  x2 = a * c / d**2 - D * b / d
+  y2 = b * c / d**2 + D * a / d
   plt.plot([x1, x2], [y1, y2], color='#000000', lw=1)
 
 for x, y, r2 in circles:

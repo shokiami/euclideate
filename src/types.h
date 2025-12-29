@@ -107,6 +107,27 @@ using PointSet = std::unordered_set<Point, PointHash>;
 using LineSet = std::unordered_set<Line, LineHash>;
 using CircleSet = std::unordered_set<Circle, CircleHash>;
 
+vector<Point> ll_sol(const Line& line1, const Line& line2);
+vector<Point> lc_sol(const Line& line, const Circle& circle);
+vector<Point> cc_sol(const Circle& circle1, const Circle& circle2);
+
+struct State {
+  PointSet points;
+  LineSet lines;
+  CircleSet circles;
+
+  State(const PointSet& points, const LineSet& lines, const CircleSet& circles);
+  bool contains_point(const Point& point);
+  bool contains_line(const Line& line);
+  bool contains_circle(const Circle& circle);
+  void add_point(const Point& point);
+  void add_line(const Line& line);
+  void add_circle(const Circle& circle);
+  size_t size() const;
+};
+
+bool operator==(const State& s1, const State& s2);
+
 template <class T, class Hash>
 inline std::size_t hash_unordered_set(const std::unordered_set<T, Hash>& set) {
   std::size_t h = 0;
@@ -116,17 +137,6 @@ inline std::size_t hash_unordered_set(const std::unordered_set<T, Hash>& set) {
   hash_combine(h, std::hash<std::size_t>{}(set.size()));
   return h;
 };
-
-struct State {
-  PointSet points;
-  LineSet lines;
-  CircleSet circles;
-
-  State(const PointSet& points, const LineSet& lines, const CircleSet& circles);
-  size_t size() const;
-};
-
-bool operator==(const State& s1, const State& s2);
 
 struct StateHash {
   std::size_t operator()(const State& s) const noexcept;
