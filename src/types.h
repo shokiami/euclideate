@@ -11,17 +11,19 @@
 #include <numeric>
 #include <stdexcept>
 #include <functional>
+#include <chrono>
+#include <cstdlib>
 
 using std::vector;
 using std::string;
 using std::cout;
-using std::endl;
 using std::abs;
 using std::gcd;
+
 using int64 = long long;
+using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 constexpr int ROOT = 3;
-constexpr size_t DEGREE = 2;
 
 struct QuadNum {
   int64 a, b, d;  // {a + b√ROOT} / d
@@ -159,19 +161,6 @@ struct StateHash {
 };
 
 using StateSet = std::unordered_set<State, StateHash>;
-
-struct Item {
-  State state;
-  size_t key;
-};
-
-struct Compare {
-  bool operator()(const Item& a, const Item& b) const {
-    return a.key > b.key;
-  }
-};
-
-using StateQueue = std::priority_queue<Item, vector<Item>, Compare>;
 
 struct Goal : State {
   SegmentSet segments;

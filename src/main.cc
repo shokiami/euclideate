@@ -42,21 +42,34 @@ bool done(const State& state, const Goal& goal) {
 
 State bfs(const State& start, const Goal& goal) {
   StateSet seen = {start};
-  StateQueue pq;
-  pq.push({start, start.size()});
+  std::queue<State> queue;
+  queue.push(start);
   size_t i = 0;
-  while (!pq.empty()) {
-    State state = pq.top().state;
-    pq.pop();
-    cout << ++i << ": " << state.size() << endl;
+  TimePoint start_time = std::chrono::steady_clock::now();
+  double prev_time = 0;
+  cout << "starting bfs..." << '\n';
+  while (!queue.empty()) {
+    State state = queue.front();
+    queue.pop();
+    i += 1;
     if (done(state, goal)) {
+      TimePoint curr_time = std::chrono::steady_clock::now();
+      double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
+      cout << "solved! time: " << time << ", iter: " << i << ", steps: " << state.size() << '\n';
+      cout << "cleaning up..." << '\n';
       return state;
     }
     for (State& child : children(state)) {
       if (!seen.contains(child)) {
         seen.insert(child);
-        pq.push({child, child.size()});
+        queue.push(child);
       }
+    }
+    TimePoint curr_time = std::chrono::steady_clock::now();
+    double time = std::chrono::duration_cast<std::chrono::seconds>(curr_time - start_time).count();
+    if (time != prev_time) {
+      cout << "time: " << time << ", iter: " << i << ", steps: " << state.size() << '\n';
+      prev_time = time;
     }
   }
   return start;
@@ -64,45 +77,45 @@ State bfs(const State& start, const Goal& goal) {
 
 void save(const State& start, const State& state, const Goal& goal) {
   std::ofstream file = std::ofstream("temp.txt");
-  file << "start points" << endl;
+  file << "start points" << '\n';
   for (const Point& p : start.points) {
-    file << p << endl;
+    file << p << '\n';
   }
-  file << endl << "start lines" << endl;
+  file << '\n' << "start lines" << '\n';
   for (const Line& l : start.lines) {
-    file << l << endl;
+    file << l << '\n';
   }
-  file << endl << "start circles" << endl;
+  file << '\n' << "start circles" << '\n';
   for (const Circle& c : start.circles) {
-    file << c << endl;
+    file << c << '\n';
   }
-  file << endl << "state points" << endl;
+  file << '\n' << "state points" << '\n';
   for (const Point& p : state.points) {
-    file << p << endl;
+    file << p << '\n';
   }
-  file << endl << "state lines" << endl;
+  file << '\n' << "state lines" << '\n';
   for (const Line& l : state.lines) {
-    file << l << endl;
+    file << l << '\n';
   }
-  file << endl << "state circles" << endl;
+  file << '\n' << "state circles" << '\n';
   for (const Circle& c : state.circles) {
-    file << c << endl;
+    file << c << '\n';
   }
-  file << endl << "goal points" << endl;
+  file << '\n' << "goal points" << '\n';
   for (const Point& p : goal.points) {
-    file << p << endl;
+    file << p << '\n';
   }
-  file << endl << "goal lines" << endl;
+  file << '\n' << "goal lines" << '\n';
   for (const Line& l : goal.lines) {
-    file << l << endl;
+    file << l << '\n';
   }
-  file << endl << "goal circles" << endl;
+  file << '\n' << "goal circles" << '\n';
   for (const Circle& c : goal.circles) {
-    file << c << endl;
+    file << c << '\n';
   }
-  file << endl << "goal segments" << endl;
+  file << '\n' << "goal segments" << '\n';
   for (const Segment& s : goal.segments) {
-    file << s << endl;
+    file << s << '\n';
   }
 }
 
@@ -119,5 +132,7 @@ int main() {
   }};
   State state = bfs(start, goal);
   save(start, state, goal);
+  cout << "done!" << '\n';
+  std::system("python3 viz.py");
   return 0;
 }
