@@ -130,9 +130,14 @@ int main() {
   }, {}, {}, {
     {{0, 1}, {{0, -1, 2}, {-1, 0, 2}}}, {{{0, -1, 2}, {-1, 0, 2}}, {{0, 1, 2}, {-1, 0, 2}}}, {{{0, 1, 2}, {-1, 0, 2}}, {0, 1}}  // segments
   }};
+  // Goal goal = {{
+  //   {0, 1}, {1, 0}, {0, -1}, {-1, 0}  // points
+  // }, {}, {}, {
+  //   {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}  // segments
+  // }};
   State state = bfs(start, goal);
   save(start, state, goal);
   cout << "done!" << '\n';
-  std::system("python3 viz.py");
+  std::system("conda run -n base python viz.py");
   return 0;
 }
