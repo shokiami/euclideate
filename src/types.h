@@ -58,11 +58,21 @@ struct Point {
 
 std::ostream& operator<<(std::ostream& os, const Point& p);
 
+struct Segment {
+  Point p1;
+  Point p2;
+
+  Segment(const Point& p1, const Point& p2);
+};
+
+std::ostream& operator<<(std::ostream& os, const Segment& s);
+
 struct Line {
   // ax + by = c
   QuadNum a, b, c;
 
   Line(const Point& p, const Point& q);
+  Line(const Segment& s);
 
   private:
   void normalize();
@@ -82,6 +92,7 @@ bool operator==(const QuadNum& x, const QuadNum& y);
 bool operator==(const Point& p, const Point& q);
 bool operator==(const Line& l1, const Line& l2);
 bool operator==(const Circle& c1, const Circle& c2);
+bool operator==(const Segment& s1, const Segment& s2);
 
 inline void hash_combine(std::size_t& seed, std::size_t h) {
   seed ^= h + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
@@ -103,9 +114,14 @@ struct CircleHash {
   std::size_t operator()(const Circle& c) const noexcept;
 };
 
+struct SegmentHash {
+  std::size_t operator()(const Segment& s) const noexcept;
+};
+
 using PointSet = std::unordered_set<Point, PointHash>;
 using LineSet = std::unordered_set<Line, LineHash>;
 using CircleSet = std::unordered_set<Circle, CircleHash>;
+using SegmentSet = std::unordered_set<Segment, SegmentHash>;
 
 vector<Point> ll_sol(const Line& line1, const Line& line2);
 vector<Point> lc_sol(const Line& line, const Circle& circle);
@@ -117,12 +133,12 @@ struct State {
   CircleSet circles;
 
   State(const PointSet& points, const LineSet& lines, const CircleSet& circles);
-  bool contains_point(const Point& point);
-  bool contains_line(const Line& line);
-  bool contains_circle(const Circle& circle);
-  void add_point(const Point& point);
-  void add_line(const Line& line);
-  void add_circle(const Circle& circle);
+  bool contains(const Point& point) const;
+  bool contains(const Line& line) const;
+  bool contains(const Circle& circle) const;
+  void add(const Point& point);
+  void add(const Line& line);
+  void add(const Circle& circle);
   size_t size() const;
 };
 
@@ -156,5 +172,11 @@ struct Compare {
 };
 
 using StateQueue = std::priority_queue<Item, vector<Item>, Compare>;
+
+struct Goal : State {
+  SegmentSet segments;
+
+  Goal(const PointSet& points, const LineSet& lines, const CircleSet& circles, const SegmentSet& segments);
+};
 
 #endif

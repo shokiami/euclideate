@@ -142,6 +142,13 @@ std::ostream& operator<<(std::ostream& os, const Point& p) {
   return os;
 }
 
+Segment::Segment(const Point& p1, const Point& p2) : p1(p1), p2(p2) {}
+
+std::ostream& operator<<(std::ostream& os, const Segment& s) {
+  os << s.p1 << " " << s.p2;
+  return os;
+}
+
 Line::Line(const Point& p, const Point& q) {
   a = q.y - p.y;
   b = p.x - q.x;
@@ -149,6 +156,8 @@ Line::Line(const Point& p, const Point& q) {
   if (sign(a) == 0 && sign(b) == 0) throw std::invalid_argument("Degenerate line");
   normalize();
 }
+
+Line::Line(const Segment& s) : Line(s.p1, s.p2) {}
 
 void Line::normalize() {
   if (sign(a) != 0) {
@@ -233,25 +242,26 @@ vector<Point> cc_sol(const Circle& circle1, const Circle& circle2) {
   return {p1, p2};
 }
 
-State::State(const PointSet& points, const LineSet& lines, const CircleSet& circles) : points(points), lines(lines), circles(circles) {}
+State::State(const PointSet& points, const LineSet& lines, const CircleSet& circles) :
+  points(points), lines(lines), circles(circles) {}
 
-bool State::contains_point(const Point& point) {
+bool State::contains(const Point& point) const {
   return points.contains(point);
 }
 
-bool State::contains_line(const Line& line) {
+bool State::contains(const Line& line) const {
   return lines.contains(line);
 }
 
-bool State::contains_circle(const Circle& circle) {
+bool State::contains(const Circle& circle) const {
   return circles.contains(circle);
 }
 
-void State::add_point(const Point& point) {
+void State::add(const Point& point) {
   points.insert(point);
 }
 
-void State::add_line(const Line& line) {
+void State::add(const Line& line) {
   for (const Line& l : lines) {
     for (const Point& p : ll_sol(line, l)) points.insert(p);
   }
@@ -261,7 +271,7 @@ void State::add_line(const Line& line) {
   lines.insert(line);
 }
 
-void State::add_circle(const Circle& circle) {
+void State::add(const Circle& circle) {
   for (const Line& l : lines) {
     for (const Point& p : lc_sol(l, circle)) points.insert(p);
   }
@@ -289,6 +299,10 @@ bool operator==(const Line& l1, const Line& l2) {
 
 bool operator==(const Circle& c1, const Circle& c2) {
   return c1.x0 == c2.x0 && c1.y0 == c2.y0 && c1.r2 == c2.r2;
+};
+
+bool operator==(const Segment& s1, const Segment& s2) {
+  return s1.p1 == s2.p1 && s1.p2 == s2.p2;
 };
 
 bool operator==(const State& s1, const State& s2) {
@@ -322,6 +336,12 @@ std::size_t CircleHash::operator()(const Circle& c) const noexcept {
   return h;
 }
 
+std::size_t SegmentHash::operator()(const Segment& s) const noexcept {
+  std::size_t h = PointHash{}(s.p1);
+  hash_combine(h, PointHash{}(s.p2));
+  return h;
+}
+
 std::size_t StateHash::operator()(const State& s) const noexcept {
   std::size_t h = 0;
   hash_combine(h, hash_unordered_set<Point, PointHash>(s.points));
@@ -329,3 +349,6 @@ std::size_t StateHash::operator()(const State& s) const noexcept {
   hash_combine(h, hash_unordered_set<Circle, CircleHash>(s.circles));
   return h;
 }
+
+Goal::Goal(const PointSet& points, const LineSet& lines, const CircleSet& circles, const SegmentSet& segments) :
+  State(points, lines, circles), segments(segments) {}
