@@ -1,8 +1,8 @@
 #include "types.h"
 
-QuadNum::QuadNum() : a(0), b(0), d(1) {}
+QuadNum::QuadNum() : QuadNum(0, 0, 1) {}
 
-QuadNum::QuadNum(int64 a) : a(a), b(0), d(1) {}
+QuadNum::QuadNum(int64 a) : QuadNum(a, 0, 1) {}
 
 QuadNum::QuadNum(int64 a, int64 b, int64 d) : a(a), b(b), d(d) {
   normalize();
@@ -342,7 +342,7 @@ void State::merge(const State& state) {
   for (const Circle& c : state.circles) add(c);
 }
 
-std::size_t State::size() const {
+size_t State::size() const {
   return lines.size() + circles.size();
 }
 
@@ -352,6 +352,10 @@ Goal::Goal(const vector<Point>& points, const vector<Line>& lines, const vector<
     add(s.p1);
     add(s.p2);
   }
+}
+
+size_t Goal::size() const {
+  return lines.size() + circles.size() + segments.size();
 }
 
 State difference(const State& state, const Goal& goal) {

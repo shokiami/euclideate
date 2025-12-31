@@ -121,6 +121,7 @@ struct Goal : State {
   vector<Segment> segments;
 
   Goal(const vector<Point>& points, const vector<Line>& lines, const vector<Circle>& circles, const vector<Segment>& segments);
+  size_t size() const;
 };
 
 State difference(const State& state, const Goal& goal);

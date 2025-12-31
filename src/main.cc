@@ -1,10 +1,14 @@
 #include "types.h"
 
+double time(TimePoint start_time) {
+  TimePoint curr_time = std::chrono::steady_clock::now();
+  return 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
+}
+
 State iddfs(const State& start, const Goal& goal) {
   TimePoint start_time = std::chrono::steady_clock::now();
-  double prev_time = 0;
   size_t i = 1;
-  size_t depth = 1;
+  size_t depth = goal.size();
   while (true) {
     std::stack<State> stack;
     stack.push(start);
@@ -12,28 +16,17 @@ State iddfs(const State& start, const Goal& goal) {
       State state = stack.top();
       stack.pop();
       if (state.contains_points(goal)) {
-        State remaining = difference(state, goal);
-        if (remaining.size() == 1) {
-          state.merge(remaining);
-          TimePoint curr_time = std::chrono::steady_clock::now();
-          double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
-          cout << "done! time: " << time << ", iter: " << i << ", depth: " << state.size() - start.size() << '\n';
-          return state;
-        }
+        state.merge(difference(state, goal));
+        cout << "done! depth: " << depth << ", iter: " << i << ", time: " << time(start_time) << '\n';
+        return state;
       }
-      if (state.size() - start.size() < depth) {
-        for (State& child : state.children()) {
-          stack.push(child);
-        }
-      }
-      TimePoint curr_time = std::chrono::steady_clock::now();
-      double time = std::chrono::duration_cast<std::chrono::seconds>(curr_time - start_time).count();
-      if (time != prev_time) {
-        cout << "time: " << time << ", iter: " << i << ", depth: " << depth << '\n';
-        prev_time = time;
+      for (State& child : state.children()) {
+        State diff = difference(child, goal);
+        if (child.size() - start.size() + diff.size() <= depth) stack.push(child);
       }
       i += 1;
     }
+    cout << "depth: " << depth << ", iter: " << i << ", time: " << time(start_time) << '\n';
     depth += 1;
   }
 }
