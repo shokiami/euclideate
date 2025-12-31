@@ -7,14 +7,15 @@ double time(TimePoint start_time) {
 
 State iddfs(const State& start, const Goal& goal) {
   TimePoint start_time = std::chrono::steady_clock::now();
-  size_t i = 1;
-  size_t depth = goal.size();
+  size_t depth = difference(start, goal).size();
+  size_t i = 0;
   while (true) {
     std::stack<State> stack;
     stack.push(start);
     while (!stack.empty()) {
       State state = stack.top();
       stack.pop();
+      i += 1;
       if (state.contains_points(goal)) {
         state.merge(difference(state, goal));
         cout << "done! depth: " << depth << ", iter: " << i << ", time: " << time(start_time) << '\n';
@@ -24,7 +25,6 @@ State iddfs(const State& start, const Goal& goal) {
         State diff = difference(child, goal);
         if (child.size() - start.size() + diff.size() <= depth) stack.push(child);
       }
-      i += 1;
     }
     cout << "depth: " << depth << ", iter: " << i << ", time: " << time(start_time) << '\n';
     depth += 1;
