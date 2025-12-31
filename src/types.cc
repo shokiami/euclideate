@@ -76,7 +76,7 @@ QuadNum operator*(const QuadNum& x, const QuadNum& y) {
 }
 
 QuadNum operator/(const QuadNum& x, const QuadNum& y) {
-  if (sign(y) == 0) throw std::invalid_argument("Division by zero");
+  if (y == 0) throw std::invalid_argument("Division by zero");
   int64 a = y.d * (x.a * y.a - ROOT * x.b * y.b);
   int64 b = y.d * (x.b * y.a - x.a * y.b);
   int64 d = x.d * (y.a * y.a - ROOT * y.b * y.b);
@@ -98,7 +98,7 @@ int64 isqrt(int64 n) {
 
 QuadNum qsqrt(const QuadNum& x) {
   if (sign(x) < 0) return -1;
-  if (sign(x) == 0) return 0;
+  if (x == 0) return 0;
   int64 a = x.a, b = x.b, d = x.d;
   if (b == 0) {
     int64 num2 = a * d;
@@ -121,7 +121,7 @@ QuadNum qsqrt(const QuadNum& x) {
     if (beta % (2 * r) != 0) continue;
     int64 s = beta / (2 * r);
     QuadNum res = {r, s, d};
-    return sign(res) == 1 ? res : -res;
+    return sign(res) < 0 ? -res : res;
   }
   return -1;
 }
@@ -165,14 +165,14 @@ Line::Line(const Point& p, const Point& q) {
   a = q.y - p.y;
   b = p.x - q.x;
   c = p.x * q.y - q.x * p.y;
-  if (sign(a) == 0 && sign(b) == 0) throw std::invalid_argument("Degenerate line");
+  if (a == 0 && b == 0) throw std::invalid_argument("Degenerate line");
   normalize();
 }
 
 Line::Line(const Segment& s) : Line(s.p1, s.p2) {}
 
 void Line::normalize() {
-  if (sign(a) != 0) {
+  if (a != 0) {
     c /= a;
     b /= a;
     a = 1;
@@ -180,7 +180,7 @@ void Line::normalize() {
     c /= b;
     b = 1;
   }
-  if (sign(a) == -1 || (sign(a) == 0 && sign(b) == -1)) {
+  if (sign(a) < 0 || (a == 0 && sign(b) < 0)) {
     a = -a;
     b = -b;
     c = -c;
@@ -200,7 +200,7 @@ Circle::Circle(const Point& p, const Point& q) : x0(p.x), y0(p.y) {
   QuadNum dx = q.x - p.x;
   QuadNum dy = q.y - p.y;
   r2 = dx * dx + dy * dy;
-  if (sign(r2) == 0) throw std::invalid_argument("Degenerate circle");
+  if (r2 == 0) throw std::invalid_argument("Degenerate circle");
 }
 
 bool operator==(const Circle& c1, const Circle& c2) {
@@ -230,7 +230,7 @@ vector<Point> lc_sol(const Line& line, const Circle& circle) {
   QuadNum norm2 = a * a + b * b;
   QuadNum d2 = dot * dot / norm2;
   QuadNum h2 = r2 - d2;
-  if (h2 == -1) return {};
+  if (sign(h2) < 0) return {};
   QuadNum x_proj = x0 - a * dot / norm2;
   QuadNum y_proj = y0 - b * dot / norm2;
   if (h2 == 0) return {{x_proj, y_proj}};
@@ -251,7 +251,7 @@ vector<Point> cc_sol(const Circle& circle1, const Circle& circle2) {
   QuadNum d2 = dx * dx + dy * dy;
   QuadNum t = (r2_1 - r2_2 + d2) / (2 * d2);
   QuadNum h2 = r2_1 - t * t * d2;
-  if (h2 == -1) return {};
+  if (sign(h2) < 0) return {};
   QuadNum x_mid = x0_1 + t * dx;
   QuadNum y_mid = y0_1 + t * dy;
   if (h2 == 0) return {{x_mid, y_mid}};
