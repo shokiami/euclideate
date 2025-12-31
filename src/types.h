@@ -112,6 +112,8 @@ struct State {
   void add(const Point& point);
   void add(const Line& line);
   void add(const Circle& circle);
+  bool contains_points(const State& state) const;
+  void merge(const State& state);
   size_t size() const;
 };
 
@@ -119,7 +121,8 @@ struct Goal : State {
   vector<Segment> segments;
 
   Goal(const vector<Point>& points, const vector<Line>& lines, const vector<Circle>& circles, const vector<Segment>& segments);
-  bool contained_in(const State& state) const;
 };
+
+State difference(const State& state, const Goal& goal);
 
 #endif

@@ -308,7 +308,6 @@ void State::add(const Point& point) {
 void State::add(const Line& line) {
   if (!contains(line)) {
     for (const Line& l : lines) {
-      if (l == line) continue;
       for (const Point& p : ll_sol(line, l)) add(p);
     }
     for (const Circle& c : circles) {
@@ -324,11 +323,23 @@ void State::add(const Circle& circle) {
       for (const Point& p : lc_sol(l, circle)) add(p);
     }
     for (const Circle& c : circles) {
-      if (c == circle) continue;
       for (const Point& p : cc_sol(circle, c)) add(p);
     }
     circles.push_back(circle);
   }
+}
+
+bool State::contains_points(const State& state) const {
+  for (const Point& p : state.points) {
+    if (!contains(p)) return false;
+  }
+  return true;
+}
+
+void State::merge(const State& state) {
+  for (const Point& p : state.points) add(p);
+  for (const Line& l : state.lines) add(l);
+  for (const Circle& c : state.circles) add(c);
 }
 
 std::size_t State::size() const {
@@ -336,20 +347,29 @@ std::size_t State::size() const {
 }
 
 Goal::Goal(const vector<Point>& points, const vector<Line>& lines, const vector<Circle>& circles, const vector<Segment>& segments) :
-  State(points, lines, circles), segments(segments) {}
-
-bool Goal::contained_in(const State& state) const {
-  for (const Point& p : points) {
-    if (!state.contains(p)) return false;
-  }
-  for (const Line& l : lines) {
-    if (!state.contains(l)) return false;
-  }
-  for (const Circle& c : circles) {
-    if (!state.contains(c)) return false;
-  }
+  State(points, lines, circles), segments(segments) {
   for (const Segment& s : segments) {
-    if (!state.contains(Line(s)) || !state.contains(s.p1) || !state.contains(s.p2)) return false;
+    add(s.p1);
+    add(s.p2);
   }
-  return true;
+}
+
+State difference(const State& state, const Goal& goal) {
+  vector<Point> points = {};
+  for (const Point& p : goal.points) {
+    if (!state.contains(p)) points.push_back(p);
+  }
+  vector<Line> lines = {};
+  for (const Line& l : goal.lines) {
+    if (!state.contains(l)) lines.push_back(l);
+  }
+  for (const Segment& s : goal.segments) {
+    Line l = {s};
+    if (!state.contains(l)) lines.push_back(l);
+  }
+  vector<Circle> circles = {};
+  for (const Circle& c : goal.circles) {
+    if (!state.contains(c)) circles.push_back(c);
+  }
+  return {points, lines, circles};
 }

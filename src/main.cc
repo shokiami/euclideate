@@ -11,13 +11,17 @@ State iddfs(const State& start, const Goal& goal) {
     while (!stack.empty()) {
       State state = stack.top();
       stack.pop();
-      if (goal.contained_in(state)) {
-        TimePoint curr_time = std::chrono::steady_clock::now();
-        double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
-        cout << "done! time: " << time << ", depth: " << depth << ", steps: " << state.size() << '\n';
-        return state;
+      if (state.contains_points(goal)) {
+        State remaining = difference(state, goal);
+        if (remaining.size() == 1) {
+          state.merge(remaining);
+          TimePoint curr_time = std::chrono::steady_clock::now();
+          double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
+          cout << "done! time: " << time << ", iter: " << i << ", depth: " << state.size() - start.size() << '\n';
+          return state;
+        }
       }
-      if (state.size() < depth) {
+      if (state.size() - start.size() < depth) {
         for (State& child : state.children()) {
           stack.push(child);
         }
@@ -37,45 +41,25 @@ State iddfs(const State& start, const Goal& goal) {
 void save(const State& start, const State& state, const Goal& goal) {
   std::ofstream file = std::ofstream("temp.txt");
   file << "start points" << '\n';
-  for (const Point& p : start.points) {
-    file << p << '\n';
-  }
+  for (const Point& p : start.points) file << p << '\n';
   file << '\n' << "start lines" << '\n';
-  for (const Line& l : start.lines) {
-    file << l << '\n';
-  }
+  for (const Line& l : start.lines) file << l << '\n';
   file << '\n' << "start circles" << '\n';
-  for (const Circle& c : start.circles) {
-    file << c << '\n';
-  }
+  for (const Circle& c : start.circles) file << c << '\n';
   file << '\n' << "state points" << '\n';
-  for (const Point& p : state.points) {
-    file << p << '\n';
-  }
+  for (const Point& p : state.points) file << p << '\n';
   file << '\n' << "state lines" << '\n';
-  for (const Line& l : state.lines) {
-    file << l << '\n';
-  }
+  for (const Line& l : state.lines) file << l << '\n';
   file << '\n' << "state circles" << '\n';
-  for (const Circle& c : state.circles) {
-    file << c << '\n';
-  }
+  for (const Circle& c : state.circles) file << c << '\n';
   file << '\n' << "goal points" << '\n';
-  for (const Point& p : goal.points) {
-    file << p << '\n';
-  }
+  for (const Point& p : goal.points) file << p << '\n';
   file << '\n' << "goal lines" << '\n';
-  for (const Line& l : goal.lines) {
-    file << l << '\n';
-  }
+  for (const Line& l : goal.lines) file << l << '\n';
   file << '\n' << "goal circles" << '\n';
-  for (const Circle& c : goal.circles) {
-    file << c << '\n';
-  }
+  for (const Circle& c : goal.circles) file << c << '\n';
   file << '\n' << "goal segments" << '\n';
-  for (const Segment& s : goal.segments) {
-    file << s << '\n';
-  }
+  for (const Segment& s : goal.segments) file << s << '\n';
 }
 
 int main() {
@@ -84,16 +68,9 @@ int main() {
   }, {}, {
     {{0, 0}, {0, 1}}  // circles
   }};
-  Goal goal = {{
-    {0, 1}, {{0, -1, 2}, {-1, 0, 2}}, {{0, 1, 2}, {-1, 0, 2}}  // points
-  }, {}, {}, {
-    {{0, 1}, {{0, -1, 2}, {-1, 0, 2}}}, {{{0, -1, 2}, {-1, 0, 2}}, {{0, 1, 2}, {-1, 0, 2}}}, {{{0, 1, 2}, {-1, 0, 2}}, {0, 1}}  // segments
+  Goal goal = {{}, {}, {}, {
+    {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}  // segments
   }};
-  // Goal goal = {{
-  //   {0, 1}, {1, 0}, {0, -1}, {-1, 0}  // points
-  // }, {}, {}, {
-  //   {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}  // segments
-  // }};
   cout << "starting search..." << '\n';
   State state = iddfs(start, goal);
   save(start, state, goal);
