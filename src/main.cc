@@ -57,12 +57,12 @@ void save(const State& start, const State& state, const Goal& goal) {
 
 int main() {
   State start = {{
-    {0, 0}, {0, 1}  // points
+    {0, 0}, {0, 1}
   }, {}, {
-    {{0, 0}, {0, 1}}  // circles
+    {{0, 0}, {0, 1}}
   }};
   Goal goal = {{}, {}, {}, {
-    {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}  // segments
+    {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}
   }};
   cout << "starting search..." << '\n';
   State state = iddfs(start, goal);
