@@ -9,7 +9,7 @@ QuadNum::QuadNum(int64 a, int64 b, int64 d) : a(a), b(b), d(d) {
 }
 
 void QuadNum::normalize() {
-  int64 g = gcd(gcd(abs(a), abs(b)), abs(d));
+  int64 g = gcd(gcd(a, b), d);
   if (g > 1) {
     a /= g;
     b /= g;
