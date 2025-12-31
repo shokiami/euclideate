@@ -1,38 +1,37 @@
 #include "types.h"
 
-State bfs(const State& start, const Goal& goal) {
-  StateSet seen = {start};
-  std::queue<State> queue;
-  queue.push(start);
-  size_t i = 0;
+State iddfs(const State& start, const Goal& goal) {
   TimePoint start_time = std::chrono::steady_clock::now();
   double prev_time = 0;
-  cout << "starting bfs..." << '\n';
-  while (!queue.empty()) {
-    State state = queue.front();
-    queue.pop();
-    i += 1;
-    if (goal.contained_in(state)) {
-      TimePoint curr_time = std::chrono::steady_clock::now();
-      double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
-      cout << "solved! time: " << time << ", iter: " << i << ", steps: " << state.size() << '\n';
-      cout << "cleaning up..." << '\n';
-      return state;
-    }
-    for (State& child : state.children()) {
-      if (!seen.contains(child)) {
-        seen.insert(child);
-        queue.push(child);
+  size_t i = 1;
+  size_t depth = 1;
+  while (true) {
+    std::stack<State> stack;
+    stack.push(start);
+    while (!stack.empty()) {
+      State state = stack.top();
+      stack.pop();
+      if (goal.contained_in(state)) {
+        TimePoint curr_time = std::chrono::steady_clock::now();
+        double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
+        cout << "done! time: " << time << ", depth: " << depth << ", steps: " << state.size() << '\n';
+        return state;
       }
+      if (state.size() < depth) {
+        for (State& child : state.children()) {
+          stack.push(child);
+        }
+      }
+      TimePoint curr_time = std::chrono::steady_clock::now();
+      double time = std::chrono::duration_cast<std::chrono::seconds>(curr_time - start_time).count();
+      if (time != prev_time) {
+        cout << "time: " << time << ", iter: " << i << ", depth: " << depth << '\n';
+        prev_time = time;
+      }
+      i += 1;
     }
-    TimePoint curr_time = std::chrono::steady_clock::now();
-    double time = std::chrono::duration_cast<std::chrono::seconds>(curr_time - start_time).count();
-    if (time != prev_time) {
-      cout << "time: " << time << ", iter: " << i << ", steps: " << state.size() << '\n';
-      prev_time = time;
-    }
+    depth += 1;
   }
-  return start;
 }
 
 void save(const State& start, const State& state, const Goal& goal) {
@@ -95,9 +94,9 @@ int main() {
   // }, {}, {}, {
   //   {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}  // segments
   // }};
-  State state = bfs(start, goal);
+  cout << "starting search..." << '\n';
+  State state = iddfs(start, goal);
   save(start, state, goal);
-  cout << "done!" << '\n';
   std::system("conda run -n base python viz.py");
   return 0;
 }

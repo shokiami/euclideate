@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <deque>
+#include <stack>
 #include <string>
 #include <fstream>
 #include <unordered_set>
@@ -42,6 +42,7 @@ struct QuadNum {
   void normalize();
 };
 
+bool operator==(const QuadNum& x, const QuadNum& y);
 QuadNum operator+(const QuadNum& x, const QuadNum& y);
 QuadNum operator-(const QuadNum& x, const QuadNum& y);
 QuadNum operator*(const QuadNum& x, const QuadNum& y);
@@ -58,6 +59,7 @@ struct Point {
   Point(const QuadNum& x, const QuadNum& y);
 };
 
+bool operator==(const Point& p, const Point& q);
 std::ostream& operator<<(std::ostream& os, const Point& p);
 
 struct Segment {
@@ -67,6 +69,7 @@ struct Segment {
   Segment(const Point& p1, const Point& p2);
 };
 
+bool operator==(const Segment& s1, const Segment& s2);
 std::ostream& operator<<(std::ostream& os, const Segment& s);
 
 struct Line {
@@ -80,6 +83,7 @@ struct Line {
   void normalize();
 };
 
+bool operator==(const Line& l1, const Line& l2);
 std::ostream& operator<<(std::ostream& os, const Line& l);
 
 struct Circle {
@@ -88,85 +92,33 @@ struct Circle {
   Circle(const Point& p, const Point& q);
 };
 
-std::ostream& operator<<(std::ostream& os, const Circle& c);
-
-bool operator==(const QuadNum& x, const QuadNum& y);
-bool operator==(const Point& p, const Point& q);
-bool operator==(const Line& l1, const Line& l2);
 bool operator==(const Circle& c1, const Circle& c2);
-bool operator==(const Segment& s1, const Segment& s2);
-
-inline void hash_combine(std::size_t& seed, std::size_t h) {
-  seed ^= h + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
-};
-
-struct QuadNumHash {
-  std::size_t operator()(const QuadNum& x) const noexcept;
-};
-
-struct PointHash {
-  std::size_t operator()(const Point& p) const noexcept;
-};
-
-struct LineHash {
-  std::size_t operator()(const Line& l) const noexcept;
-};
-
-struct CircleHash {
-  std::size_t operator()(const Circle& c) const noexcept;
-};
-
-struct SegmentHash {
-  std::size_t operator()(const Segment& s) const noexcept;
-};
-
-using PointSet = std::unordered_set<Point, PointHash>;
-using LineSet = std::unordered_set<Line, LineHash>;
-using CircleSet = std::unordered_set<Circle, CircleHash>;
-using SegmentSet = std::unordered_set<Segment, SegmentHash>;
+std::ostream& operator<<(std::ostream& os, const Circle& c);
 
 vector<Point> ll_sol(const Line& line1, const Line& line2);
 vector<Point> lc_sol(const Line& line, const Circle& circle);
 vector<Point> cc_sol(const Circle& circle1, const Circle& circle2);
 
 struct State {
-  PointSet points;
-  LineSet lines;
-  CircleSet circles;
+  vector<Point> points;
+  vector<Line> lines;
+  vector<Circle> circles;
 
-  State(const PointSet& points, const LineSet& lines, const CircleSet& circles);
+  State(const vector<Point>& points, const vector<Line>& lines, const vector<Circle>& circles);
   vector<State> children() const;
   bool contains(const Point& point) const;
   bool contains(const Line& line) const;
   bool contains(const Circle& circle) const;
-  void insert(const Point& point);
-  void insert(const Line& line);
-  void insert(const Circle& circle);
+  void add(const Point& point);
+  void add(const Line& line);
+  void add(const Circle& circle);
   size_t size() const;
 };
 
-bool operator==(const State& s1, const State& s2);
-
-template <class T, class Hash>
-inline std::size_t hash_unordered_set(const std::unordered_set<T, Hash>& set) {
-  std::size_t h = 0;
-  for (const auto& x : set) {
-    hash_combine(h, Hash{}(x));
-  }
-  hash_combine(h, std::hash<std::size_t>{}(set.size()));
-  return h;
-};
-
-struct StateHash {
-  std::size_t operator()(const State& s) const noexcept;
-};
-
-using StateSet = std::unordered_set<State, StateHash>;
-
 struct Goal : State {
-  SegmentSet segments;
+  vector<Segment> segments;
 
-  Goal(const PointSet& points, const LineSet& lines, const CircleSet& circles, const SegmentSet& segments);
+  Goal(const vector<Point>& points, const vector<Line>& lines, const vector<Circle>& circles, const vector<Segment>& segments);
   bool contained_in(const State& state) const;
 };
 
