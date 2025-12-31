@@ -15,3 +15,6 @@ Running:
 ```
 ./main
 ```
+
+Example: Here is the minimal construction of a square inscribed in a circle.
+<img width="100%" alt="Figure_1" src="https://github.com/user-attachments/assets/a96a074f-8801-459e-9823-6b3785413105"/>
