@@ -1,45 +1,5 @@
 #include "types.h"
 
-vector<State> children(const State& state) {
-  vector<State> children;
-  vector<Point> points(state.points.begin(), state.points.end());
-  for (size_t i = 0; i < points.size(); i++) {
-    for (size_t j = 0; j < points.size(); j++) {
-      if (i == j) continue;
-      Circle circle = {points[i], points[j]};
-      if (!state.contains(circle)) {
-        State child = state;
-        child.add(circle);
-        children.push_back(child);
-      }
-      if (i > j) continue;
-      Line line = {points[i], points[j]};
-      if (!state.contains(line)) {
-        State child = state;
-        child.add(line);
-        children.push_back(child);
-      }
-    }
-  }
-  return children;
-}
-
-bool done(const State& state, const Goal& goal) {
-  for (const Point& p : goal.points) {
-    if (!state.contains(p)) return false;
-  }
-  for (const Line& l : goal.lines) {
-    if (!state.contains(l)) return false;
-  }
-  for (const Circle& c : goal.circles) {
-    if (!state.contains(c)) return false;
-  }
-  for (const Segment& s : goal.segments) {
-    if (!state.contains(Line(s)) || !state.contains(s.p1) || !state.contains(s.p2)) return false;
-  }
-  return true;
-}
-
 State bfs(const State& start, const Goal& goal) {
   StateSet seen = {start};
   std::queue<State> queue;
@@ -52,14 +12,14 @@ State bfs(const State& start, const Goal& goal) {
     State state = queue.front();
     queue.pop();
     i += 1;
-    if (done(state, goal)) {
+    if (goal.contained_in(state)) {
       TimePoint curr_time = std::chrono::steady_clock::now();
       double time = 1e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(curr_time - start_time).count();
       cout << "solved! time: " << time << ", iter: " << i << ", steps: " << state.size() << '\n';
       cout << "cleaning up..." << '\n';
       return state;
     }
-    for (State& child : children(state)) {
+    for (State& child : state.children()) {
       if (!seen.contains(child)) {
         seen.insert(child);
         queue.push(child);

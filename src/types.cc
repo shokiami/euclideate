@@ -245,6 +245,30 @@ vector<Point> cc_sol(const Circle& circle1, const Circle& circle2) {
 State::State(const PointSet& points, const LineSet& lines, const CircleSet& circles) :
   points(points), lines(lines), circles(circles) {}
 
+vector<State> State::children() const {
+  vector<State> children;
+  vector<Point> pts(points.begin(), points.end());
+  for (size_t i = 0; i < pts.size(); i++) {
+    for (size_t j = 0; j < pts.size(); j++) {
+      if (i == j) continue;
+      Circle circle = {pts[i], pts[j]};
+      if (!contains(circle)) {
+        State child = *this;
+        child.insert(circle);
+        children.push_back(child);
+      }
+      if (i > j) continue;
+      Line line = {pts[i], pts[j]};
+      if (!contains(line)) {
+        State child = *this;
+        child.insert(line);
+        children.push_back(child);
+      }
+    }
+  }
+  return children;
+}
+
 bool State::contains(const Point& point) const {
   return points.contains(point);
 }
@@ -257,12 +281,13 @@ bool State::contains(const Circle& circle) const {
   return circles.contains(circle);
 }
 
-void State::add(const Point& point) {
+void State::insert(const Point& point) {
   points.insert(point);
 }
 
-void State::add(const Line& line) {
+void State::insert(const Line& line) {
   for (const Line& l : lines) {
+    if (l == line) continue;
     for (const Point& p : ll_sol(line, l)) points.insert(p);
   }
   for (const Circle& c : circles) {
@@ -271,11 +296,12 @@ void State::add(const Line& line) {
   lines.insert(line);
 }
 
-void State::add(const Circle& circle) {
+void State::insert(const Circle& circle) {
   for (const Line& l : lines) {
     for (const Point& p : lc_sol(l, circle)) points.insert(p);
   }
   for (const Circle& c : circles) {
+    if (c == circle) continue;
     for (const Point& p : cc_sol(circle, c)) points.insert(p);
   }
   circles.insert(circle);
@@ -283,6 +309,25 @@ void State::add(const Circle& circle) {
 
 std::size_t State::size() const {
   return lines.size() + circles.size();
+}
+
+Goal::Goal(const PointSet& points, const LineSet& lines, const CircleSet& circles, const SegmentSet& segments) :
+  State(points, lines, circles), segments(segments) {}
+
+bool Goal::contained_in(const State& state) const {
+  for (const Point& p : points) {
+    if (!state.contains(p)) return false;
+  }
+  for (const Line& l : lines) {
+    if (!state.contains(l)) return false;
+  }
+  for (const Circle& c : circles) {
+    if (!state.contains(c)) return false;
+  }
+  for (const Segment& s : segments) {
+    if (!state.contains(Line(s)) || !state.contains(s.p1) || !state.contains(s.p2)) return false;
+  }
+  return true;
 }
 
 bool operator==(const QuadNum& x, const QuadNum& y) {
@@ -349,6 +394,3 @@ std::size_t StateHash::operator()(const State& s) const noexcept {
   hash_combine(h, hash_unordered_set<Circle, CircleHash>(s.circles));
   return h;
 }
-
-Goal::Goal(const PointSet& points, const LineSet& lines, const CircleSet& circles, const SegmentSet& segments) :
-  State(points, lines, circles), segments(segments) {}

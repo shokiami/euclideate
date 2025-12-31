@@ -135,12 +135,13 @@ struct State {
   CircleSet circles;
 
   State(const PointSet& points, const LineSet& lines, const CircleSet& circles);
+  vector<State> children() const;
   bool contains(const Point& point) const;
   bool contains(const Line& line) const;
   bool contains(const Circle& circle) const;
-  void add(const Point& point);
-  void add(const Line& line);
-  void add(const Circle& circle);
+  void insert(const Point& point);
+  void insert(const Line& line);
+  void insert(const Circle& circle);
   size_t size() const;
 };
 
@@ -166,6 +167,7 @@ struct Goal : State {
   SegmentSet segments;
 
   Goal(const PointSet& points, const LineSet& lines, const CircleSet& circles, const SegmentSet& segments);
+  bool contained_in(const State& state) const;
 };
 
 #endif
