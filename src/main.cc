@@ -61,8 +61,12 @@ int main() {
   }, {}, {
     {{0, 0}, {0, 1}}
   }};
+  Point p1 = {0, 1};
+  Point p2 = {1, 0};
+  Point p3 = {0, -1};
+  Point p4 = {-1, 0};
   Goal goal = {{}, {}, {}, {
-    {{0, 1}, {1, 0}}, {{1, 0}, {0, -1}}, {{0, -1}, {-1, 0}}, {{-1, 0}, {0, 1}}
+    {p1, p2}, {p2, p3}, {p3, p4}, {p4, p1}
   }};
   cout << "starting search..." << '\n';
   State state = iddfs(start, goal);

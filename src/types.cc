@@ -1,25 +1,117 @@
 #include "types.h"
 
-QuadNum::QuadNum() : QuadNum(0, 0, 1) {}
+Rational::Rational() : Rational(0, 1) {}
 
-QuadNum::QuadNum(int64 a) : QuadNum(a, 0, 1) {}
+Rational::Rational(int64 n) : Rational(n, 1) {}
 
-QuadNum::QuadNum(int64 a, int64 b, int64 d) : a(a), b(b), d(d) {
+Rational::Rational(int64 n, int64 d) : n(n), d(d) {
+  if (d == 0) throw std::invalid_argument("zero denominator");
   normalize();
 }
 
-void QuadNum::normalize() {
-  int64 g = gcd(gcd(a, b), d);
-  if (g > 1) {
-    a /= g;
-    b /= g;
-    d /= g;
-  }
+void Rational::normalize() {
   if (d < 0) {
-    a = -a;
-    b = -b;
+    n = -n;
     d = -d;
   }
+  int64_t g = gcd(n, d);
+  n /= g;
+  d /= g;
+}
+
+bool operator==(const Rational& r, const Rational& s) {
+  return r.n == s.n && r.d == s.d;
+}
+
+bool operator<(const Rational& r, const Rational& s) {
+  return r.n * s.d < s.n * r.d;
+}
+
+bool operator>(const Rational& r, const Rational& s) {
+  return r.n * s.d > s.n * r.d;
+}
+
+Rational operator+(const Rational& r, const Rational& s) {
+  return {r.n * s.d + s.n * r.d, r.d * s.d};
+}
+
+Rational operator-(const Rational& r, const Rational& s) {
+  return {r.n * s.d - s.n * r.d, r.d * s.d};
+}
+
+Rational operator*(const Rational& r, const Rational& s) {
+  return {r.n * s.n, r.d * s.d};
+}
+
+Rational operator/(const Rational& r, const Rational& s) {
+  return {r.n * s.d, r.d * s.n};
+}
+
+Rational& Rational::operator+=(const Rational& other) {
+  *this = *this + other;
+  return *this;
+}
+
+Rational& Rational::operator-=(const Rational& other) {
+  *this = *this - other;
+  return *this;
+}
+
+Rational& Rational::operator*=(const Rational& other) {
+  *this = *this * other;
+  return *this;
+}
+
+Rational& Rational::operator/=(const Rational& other) {
+  *this = *this / other;
+  return *this;
+}
+
+Rational Rational::operator-() const {
+  return {-n, d};
+}
+
+double Rational::to_double() const {
+  return static_cast<double>(n) / static_cast<double>(d);
+}
+
+std::ostream& operator<<(std::ostream& os, const Rational& r) {
+  os << r.to_double();
+  return os;
+}
+
+QuadNum::QuadNum() : QuadNum(0, 0) {}
+
+QuadNum::QuadNum(int64 n) : QuadNum(n, 0) {}
+
+QuadNum::QuadNum(Rational a) : QuadNum(a, 0) {}
+
+QuadNum::QuadNum(Rational a, Rational b) : a(a), b(b) {}
+
+bool operator==(const QuadNum& x, const QuadNum& y) {
+  return x.a == y.a && x.b == y.b;
+};
+
+QuadNum operator+(const QuadNum& x, const QuadNum& y) {
+  return {x.a + y.a, x.b + y.b};
+}
+
+QuadNum operator-(const QuadNum& x, const QuadNum& y) {
+  return {x.a - y.a, x.b - y.b};
+}
+
+QuadNum operator*(const QuadNum& x, const QuadNum& y) {
+  Rational a = x.a * y.a + ROOT * x.b * y.b;
+  Rational b = x.a * y.b + x.b * y.a;
+  return {a, b};
+}
+
+QuadNum operator/(const QuadNum& x, const QuadNum& y) {
+  if (y == 0) throw std::invalid_argument("Division by zero");
+  Rational d = y.a * y.a - y.b * y.b * ROOT;
+  Rational a = (x.a * y.a - x.b * y.b * ROOT) / d;
+  Rational b = (x.b * y.a - x.a * y.b) / d;
+  return {a, b};
 }
 
 QuadNum& QuadNum::operator+=(const QuadNum& other) {
@@ -43,44 +135,7 @@ QuadNum& QuadNum::operator/=(const QuadNum& other) {
 }
 
 QuadNum QuadNum::operator-() const {
-  return {-a, -b, d};
-}
-
-double QuadNum::to_double() const {
-  return (static_cast<double>(a) + static_cast<double>(b) * std::sqrt(static_cast<double>(ROOT))) / static_cast<double>(d);
-}
-
-bool operator==(const QuadNum& x, const QuadNum& y) {
-  return x.a == y.a && x.b == y.b && x.d == y.d;
-};
-
-QuadNum operator+(const QuadNum& x, const QuadNum& y) {
-  int64 a = x.a * y.d + y.a * x.d;
-  int64 b = x.b * y.d + y.b * x.d;
-  int64 d = x.d * y.d;
-  return {a, b, d};
-}
-
-QuadNum operator-(const QuadNum& x, const QuadNum& y) {
-  int64 a = x.a * y.d - y.a * x.d;
-  int64 b = x.b * y.d - y.b * x.d;
-  int64 d = x.d * y.d;
-  return {a, b, d};
-}
-
-QuadNum operator*(const QuadNum& x, const QuadNum& y) {
-  int64 a = x.a * y.a + ROOT * x.b * y.b;
-  int64 b = x.a * y.b + x.b * y.a;
-  int64 d = x.d * y.d;
-  return {a, b, d};
-}
-
-QuadNum operator/(const QuadNum& x, const QuadNum& y) {
-  if (y == 0) throw std::invalid_argument("Division by zero");
-  int64 a = y.d * (x.a * y.a - ROOT * x.b * y.b);
-  int64 b = y.d * (x.b * y.a - x.a * y.b);
-  int64 d = x.d * (y.a * y.a - ROOT * y.b * y.b);
-  return {a, b, d};
+  return {-a, -b};
 }
 
 int64 isqrt(int64 n) {
@@ -96,46 +151,52 @@ int64 isqrt(int64 n) {
   }
 }
 
+Rational rsqrt(Rational r) {
+  if (r < 0) return -1;
+  if (r == 0) return 0;
+  int64 n2 = r.n * r.d;
+  int64 n = isqrt(n2);
+  if (n == -1) return -1;
+  return {n, r.d};
+}
+
 QuadNum qsqrt(const QuadNum& x) {
   if (sign(x) < 0) return -1;
   if (x == 0) return 0;
-  int64 a = x.a, b = x.b, d = x.d;
-  if (b == 0) {
-    int64 num2 = a * d;
-    int64 r = isqrt(num2);
-    if (r != -1) return {r, 0, d};
-    if (num2 % ROOT != 0) return -1;
-    int64 s = isqrt(num2 / ROOT);
-    if (s == -1) return -1;
-    return {0, s, d};
+  if (x.b == 0) {
+    Rational a = rsqrt(x.a);
+    if (a != -1) return a;
+    Rational b = rsqrt(x.a / ROOT);
+    if (b == -1) return -1;
+    return {0, b};
   }
-  int64 alpha = a * d;
-  int64 beta = b * d;
-  int64 disc = isqrt(alpha * alpha - ROOT * beta * beta);
+  Rational disc = rsqrt(x.a * x.a - x.b * x.b * ROOT);
   if (disc == -1) return -1;
   for (int sgn : {1, -1}) {
-    int64 num = alpha + sgn * disc;
-    if (num % 2 != 0) continue;
-    int64 r = isqrt(num / 2);
-    if (r == -1) continue;
-    if (beta % (2 * r) != 0) continue;
-    int64 s = beta / (2 * r);
-    QuadNum res = {r, s, d};
-    return sign(res) < 0 ? -res : res;
+    Rational p2 = (x.a + sgn * disc) / 2;
+    Rational p = rsqrt(p2);
+    if (p == -1) continue;
+    Rational q = x.b / (2 * p);
+    QuadNum res = {p, q};
+    return sign(res) > 0 ? res : -res;
   }
   return -1;
 }
 
 int sign(const QuadNum& x) {
-  int64 lhs = x.a * x.a;
-  int64 rhs = ROOT * x.b * x.b;
+  Rational lhs = x.a * x.a;
+  Rational rhs = x.b * x.b * ROOT;
   if (lhs > rhs) return (x.a > 0) ? 1 : -1;
   if (rhs > lhs) return (x.b > 0) ? 1 : -1;
   return 0;
 }
 
+double QuadNum::to_double() const {
+  return a.to_double() + b.to_double() * std::sqrt(ROOT);
+}
+
 std::ostream& operator<<(std::ostream& os, const QuadNum& x) {
-  os << "{" << x.a << " + " << x.b << "√" << ROOT << "} / " << x.d;
+  os << x.to_double();
   return os;
 }
 
@@ -146,7 +207,7 @@ bool operator==(const Point& p, const Point& q) {
 };
 
 std::ostream& operator<<(std::ostream& os, const Point& p) {
-  os << p.x.to_double() << " " << p.y.to_double();
+  os << p.x << " " << p.y;
   return os;
 }
 

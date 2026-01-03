@@ -25,21 +25,45 @@ using TimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
 constexpr int ROOT = 3;
 
+struct Rational {
+  int64 n, d;
+
+  Rational();
+  Rational(int64 n);
+  Rational(int64 n, int64 d);
+  Rational& operator+=(const Rational& other);
+  Rational& operator-=(const Rational& other);
+  Rational& operator*=(const Rational& other);
+  Rational& operator/=(const Rational& other);
+  Rational operator-() const;
+  double to_double() const;
+
+  private:
+  void normalize();
+};
+
+bool operator==(const Rational& r, const Rational& s);
+bool operator<(const Rational& r, const Rational& s);
+bool operator>(const Rational& r, const Rational& s);
+Rational operator+(const Rational& r, const Rational& s);
+Rational operator-(const Rational& r, const Rational& s);
+Rational operator*(const Rational& r, const Rational& s);
+Rational operator/(const Rational& r, const Rational& s);
+std::ostream& operator<<(std::ostream& os, const Rational& r);
+
 struct QuadNum {
-  int64 a, b, d;  // {a + b√ROOT} / d
+  Rational a, b;
 
   QuadNum();
-  QuadNum(int64 a);
-  QuadNum(int64 a, int64 b, int64 d);
+  QuadNum(int64 n);
+  QuadNum(Rational a);
+  QuadNum(Rational a, Rational b);
   QuadNum& operator+=(const QuadNum& other);
   QuadNum& operator-=(const QuadNum& other);
   QuadNum& operator*=(const QuadNum& other);
   QuadNum& operator/=(const QuadNum& other);
   QuadNum operator-() const;
   double to_double() const;
-
-  private:
-  void normalize();
 };
 
 bool operator==(const QuadNum& x, const QuadNum& y);
@@ -49,6 +73,7 @@ QuadNum operator*(const QuadNum& x, const QuadNum& y);
 QuadNum operator/(const QuadNum& x, const QuadNum& y);
 
 int64 isqrt(int64 n);  // return -1 if sol != integer
+Rational rsqrt(Rational r);  // return -1 if sol != rational
 QuadNum qsqrt(const QuadNum& x);  // return -1 if sol != QuadNum
 int sign(const QuadNum& x);
 std::ostream& operator<<(std::ostream& os, const QuadNum& x);
