@@ -172,15 +172,12 @@ QuadNum qsqrt(const QuadNum& x) {
   }
   Rational disc = rsqrt(x.a * x.a - x.b * x.b * ROOT);
   if (disc == -1) return -1;
-  for (int sgn : {1, -1}) {
-    Rational p2 = (x.a + sgn * disc) / 2;
-    Rational p = rsqrt(p2);
-    if (p == -1) continue;
-    Rational q = x.b / (2 * p);
-    QuadNum res = {p, q};
-    return sign(res) > 0 ? res : -res;
-  }
-  return -1;
+  Rational a = rsqrt((x.a + disc) / 2);
+  if (a == -1) return -1;
+  Rational b = rsqrt((x.a - disc) / 2);
+  if (b == -1) return -1;
+  if (x.b < 0) b = -b;
+  return {a, b};
 }
 
 int sign(const QuadNum& x) {
